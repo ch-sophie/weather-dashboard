@@ -30,9 +30,10 @@ def run_bronze_layer(
     # 3. Write data to the Bronze Delta Table
     # Delta format ensures ACID transactions and history tracking
     bronze_df.write \
-        .format("delta") \
-        .mode("append") \
-        .save(output_path)
+    .format("delta") \
+    .mode("append") \
+    .option("mergeSchema", "true") \
+    .save(output_path)
 
     row_count = bronze_df.count()
     print(f"Bronze layer processed successfully. Rows written: {row_count}")
