@@ -9,10 +9,10 @@ bronze_data = spark.read.format("delta").load("./data/delta/weather_bronze")
 silver_df = bronze_data.select(
     col("metadata.city").alias("city"),
     col("metadata.country").alias("country"),
+    col("metadata.continent").alias("continent"),
     col("latitude").cast("float"),
     col("longitude").cast("float"),
     col("elevation").cast("float"),
-    # Unpack the current weather nested object and fix types
     to_timestamp(col("current.time"), "yyyy-MM-dd'T'HH:mm").alias("weather_timestamp"),
     col("current.temperature_2m").cast("float").alias("temperature_celsius"),
     col("current.relative_humidity_2m").cast("int").alias("relative_humidity_pct"),
@@ -21,7 +21,7 @@ silver_df = bronze_data.select(
     col("current.wind_speed_10m").cast("float").alias("wind_speed_kmh"),
     to_timestamp(col("metadata.extracted_at")).alias("extracted_at"),
     col("ingested_at"),
-    col("source_file")
+    col("source_file"),
 )
 
 #Data quality: drop rows missing essential fields
@@ -34,6 +34,7 @@ silver_df = silver_df.dropDuplicates(["city", "weather_timestamp"])
 silver_df.write \
     .format("delta") \
     .mode("overwrite") \
+    .option("overwriteSchema", "true") \
     .partitionBy("city") \
     .save("./data/delta/weather_silver")
 
