@@ -3,14 +3,12 @@ import requests
 
 st.set_page_config(page_title="Weather Search", page_icon="🌤️")
 
-
 def geocode_city(city_name):
     url = "https://geocoding-api.open-meteo.com/v1/search"
     params = {"name": city_name, "count": 5}
     response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
     return response.json().get("results", [])
-
 
 def fetch_weather(lat, lon):
     url = "https://api.open-meteo.com/v1/forecast"
@@ -25,10 +23,9 @@ def fetch_weather(lat, lon):
     response.raise_for_status()
     return response.json()
 
-
 st.title("🌤️ City Weather Search")
 
-query = st.text_input("Search for a city", placeholder="e.g. Osaka, Brussels, Nairobi")
+query = st.text_input("Search for a city", placeholder="Brussels")
 
 if query:
     matches = geocode_city(query)
