@@ -34,7 +34,7 @@ def run_gold_layer(
         spark_max("temperature_celsius").alias("max_temperature_celsius"),
         spark_min("temperature_celsius").alias("min_temperature_celsius"),
         avg("humidity_pct" if "humidity_pct" in latest_df.columns else "relative_humidity_pct").alias("avg_humidity_pct"),
-        avg("wind_speed_kmh").alias("avg_wind_speed_km/h"),
+        avg("wind_speed_kmh").alias("avg_wind_speed_kmh"),
     )
 
     summary_df.write \
