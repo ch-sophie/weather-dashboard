@@ -55,7 +55,7 @@ st.title("🌤️ City Weather Search")
 
 col_input, col_button = st.columns([4, 1])
 with col_input:
-    query = st.text_input("Search for a city", placeholder="e.g. Osaka, Brussels, Nairobi", label_visibility="collapsed")
+    query = st.text_input("Search for a city", placeholder="Brussels", label_visibility="collapsed")
 with col_button:
     search_clicked = st.button("Search", use_container_width=True)
 
