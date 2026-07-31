@@ -16,19 +16,56 @@ def fetch_weather(lat, lon):
         "latitude": lat,
         "longitude": lon,
         "current": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m",
-        "daily": "sunrise,sunset",
+        "daily": "sunrise,sunset,temperature_2m_max,temperature_2m_min,weathercode",
         "timezone": "auto",
+        "forecast_days": 6,
     }
     response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
     return response.json()
 
+WEATHER_CODES = {
+    0: ("☀️", "Clear"),
+    1: ("🌤️", "Mostly clear"),
+    2: ("⛅", "Partly cloudy"),
+    3: ("☁️", "Overcast"),
+    45: ("🌫️", "Fog"),
+    48: ("🌫️", "Fog"),
+    51: ("🌦️", "Light drizzle"),
+    53: ("🌦️", "Drizzle"),
+    55: ("🌦️", "Heavy drizzle"),
+    61: ("🌧️", "Light rain"),
+    63: ("🌧️", "Rain"),
+    65: ("🌧️", "Heavy rain"),
+    71: ("🌨️", "Light snow"),
+    73: ("🌨️", "Snow"),
+    75: ("🌨️", "Heavy snow"),
+    80: ("🌦️", "Rain showers"),
+    81: ("🌦️", "Rain showers"),
+    82: ("⛈️", "Violent showers"),
+    95: ("⛈️", "Thunderstorm"),
+    96: ("⛈️", "Thunderstorm w/ hail"),
+    99: ("⛈️", "Thunderstorm w/ hail"),
+}
+
+def describe_weather_code(code):
+    return WEATHER_CODES.get(code, ("🌡️", "Unknown"))
+
 st.title("🌤️ City Weather Search")
 
-query = st.text_input("Search for a city", placeholder="Brussels")
+col_input, col_button = st.columns([4, 1])
+with col_input:
+    query = st.text_input("Search for a city", placeholder="e.g. Osaka, Brussels, Nairobi", label_visibility="collapsed")
+with col_button:
+    search_clicked = st.button("Search", use_container_width=True)
 
-if query:
-    matches = geocode_city(query)
+if search_clicked and query:
+    st.session_state["matches"] = geocode_city(query)
+    st.session_state["query"] = query
+
+if "matches" in st.session_state:
+    matches = st.session_state["matches"]
+    query = st.session_state["query"]
 
     if not matches:
         st.warning(f"No results found for '{query}'. Try a different spelling.")
@@ -72,3 +109,23 @@ if query:
             col7.metric("🌇 Sunset", sunset_time)
 
         st.caption(f"Last updated: {current.get('time')} · Timezone: {weather.get('timezone')}")
+
+        st.divider()
+        st.subheader("📅 5-Day Forecast")
+
+        dates = daily.get("time", [])
+        max_temps = daily.get("temperature_2m_max", [])
+        min_temps = daily.get("temperature_2m_min", [])
+        codes = daily.get("weathercode", [])
+
+        # Skip index 0 (today, already shown above) and show the next 5 days
+        forecast_cols = st.columns(5)
+        for i, col in enumerate(forecast_cols, start=1):
+            if i >= len(dates):
+                break
+            emoji, label = describe_weather_code(codes[i])
+            with col:
+                st.markdown(f"**{dates[i]}**")
+                st.markdown(f"<span style='font-size: 2rem'>{emoji}</span>", unsafe_allow_html=True)
+                st.caption(label)
+                st.markdown(f"**{max_temps[i]:.0f}°** / {min_temps[i]:.0f}°")
