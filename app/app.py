@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from datetime import datetime
 
 st.set_page_config(page_title="Weather Search", page_icon="🌤️")
 
@@ -85,6 +86,17 @@ if "matches" in st.session_state:
         current = weather.get("current", {})
 
         st.subheader(f"{city['name']}, {city.get('country', '')}")
+
+        local_time_str = current.get("time")
+        local_time_html = ""
+        if local_time_str:
+            local_dt = datetime.strptime(local_time_str, "%Y-%m-%dT%H:%M")
+            local_time_html = f" <span style='color: #1134A6; font-size: 0.6em;'>{local_dt.strftime('%A, %b %d · %I:%M %p')}</span>"
+ 
+        st.markdown(
+            f"## {city['name']}, {city.get('country', '')}{local_time_html}",
+            unsafe_allow_html=True,
+        )
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Temperature", f"{current.get('temperature_2m')} °C")
